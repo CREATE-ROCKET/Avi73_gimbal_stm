@@ -79,7 +79,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  HAL_CAN_Start(&hcan1)
+  HAL_CAN_Start(&hcan1);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -95,7 +95,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_CAN_Start(&hcan1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,13 +105,25 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-      for ( int i = 0; i<500 ; ){
-          i++;
-      }
-      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-      HAL_Delay(500);
-
+    CAN_TxHeaderTypeDef TxHeader;
+    uint32_t TxMailbox;
+    uint8_t TxData[8];
+    if(0 < HAL_CAN_GetTxMailboxesFreeLevel(&hcan1)){
+      TxHeader.StdId = 0x555;                 // CAN ID
+      TxHeader.RTR = CAN_RTR_DATA;            // フレームタイプはデータフレーム
+      TxHeader.IDE = CAN_ID_STD;              // 標準ID(11ﾋﾞｯﾄ)
+      TxHeader.DLC = 8;                       // データ長は8バイトに
+      TxHeader.TransmitGlobalTime = DISABLE;  // ???
+      TxData[0] = 0x11;
+      TxData[1] = 0x22;
+      TxData[2] = 0x33;
+      TxData[3] = 0x44;
+      TxData[4] = 0x55;
+      TxData[5] = 0x66;
+      TxData[6] = 0x77;
+      TxData[7] = 0x88;
+      HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+    }
   }
   /* USER CODE END 3 */
 }
